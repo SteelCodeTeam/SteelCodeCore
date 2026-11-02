@@ -22,9 +22,7 @@ PAGES = ROOT / 'pages'
 SITE = 'SteelCodeCore'
 VERSION = '0.1.0'
 MINECRAFT = '1.21.1'
-# Set this to your repository URL to show a link in the header, e.g. 'https://github.com/steelcode-team/steelcodecore'.
-REPO_URL = ''
-
+REPO_URL = 'https://github.com/SteelCodeTeam/SteelCodeCore'
 
 def front_matter(text):
     meta = {}

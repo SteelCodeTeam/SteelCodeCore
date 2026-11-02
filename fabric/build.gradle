@@ -1,0 +1,65 @@
+plugins {
+    id 'com.gradleup.shadow'
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+configurations {
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
+    modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
+
+    common(project(path: ':common', configuration: 'namedElements')) { transitive false }
+    shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
+}
+
+processResources {
+    def props = [
+            version    : project.version,
+            description: rootProject.mod_description,
+            project_url: rootProject.project_url,
+            docs_url   : rootProject.docs_url,
+    ]
+    inputs.properties props
+    filesMatching('fabric.mod.json') {
+        expand props
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = 'dev-shadow'
+}
+
+remapJar {
+    inputFile.set shadowJar.archiveFile
+}
+
+// The dev-shadow jar is a build intermediate: keep it out of the published component.
+components.java.withVariantsFromConfiguration(configurations.shadowRuntimeElements) { skip() }
+
+// The common code is shaded into this jar, so its sources belong in the sources jar too.
+sourcesJar {
+    def commonSources = project(':common').tasks.named('sourcesJar')
+    dependsOn commonSources
+    from commonSources.map { zipTree(it.archiveFile) }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

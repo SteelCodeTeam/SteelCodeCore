@@ -1,0 +1,63 @@
+# Release on tag: `git tag v0.2.0 && git push origin v0.2.0`
+#  1. builds with the version taken from the tag,
+#  2. publishes common/fabric/neoforge (+ sources + javadoc) to the Codeberg Maven registry,
+#  3. creates the GitHub release with the mod jars and the matching CHANGELOG.md section.
+# Required secret: CODEBERG_TOKEN (Codeberg access token with scope write:package).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Read version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME is not vMAJOR.MINOR.PATCH[-suffix]"; exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check the changelog has an entry for this version
+        run: |
+          grep -q "^## \[${{ steps.version.outputs.version }}\]" CHANGELOG.md \
+            || { echo "::error::CHANGELOG.md has no '## [${{ steps.version.outputs.version }}]' section"; exit 1; }
+          awk -v v="${{ steps.version.outputs.version }}" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+
+      - name: Build and publish to Codeberg
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        run: |
+          if [ -z "$CODEBERG_TOKEN" ]; then echo "::error::Secret CODEBERG_TOKEN is not set"; exit 1; fi
+          ./gradlew build publish -Pmod_version=${{ steps.version.outputs.version }}
+
+      - name: GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: SteelCodeCore ${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          files: |
+            fabric/build/libs/steelcodecore-fabric-${{ steps.version.outputs.version }}.jar
+            neoforge/build/libs/steelcodecore-neoforge-${{ steps.version.outputs.version }}.jar
+          fail_on_unmatched_files: true

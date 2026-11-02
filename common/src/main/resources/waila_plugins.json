@@ -1,0 +1,7 @@
+{
+  "steelcodecore:tooltips": {
+    "entrypoints": { "client": "dev.steelcode.core.impl.compat.WthitCompat" },
+    "side": "*",
+    "required": []
+  }
+}

@@ -1,0 +1,138 @@
+plugins {
+    id 'dev.architectury.loom' version '1.10.455' apply false
+    id 'architectury-plugin' version '3.4.164'
+    id 'com.gradleup.shadow' version '8.3.6' apply false
+}
+
+architectury {
+    minecraft = project.minecraft_version
+}
+
+allprojects {
+    group = rootProject.maven_group
+    version = rootProject.mod_version
+}
+
+subprojects {
+    apply plugin: 'dev.architectury.loom'
+    apply plugin: 'architectury-plugin'
+    apply plugin: 'maven-publish'
+
+    base {
+        archivesName = "$rootProject.archives_name-$project.name"
+    }
+
+    repositories {
+        maven { url = 'https://maven.neoforged.net/releases/' }
+        // Integraciones opcionales (JEI, REI, EMI, Jade, WTHIT)
+        maven { url = 'https://maven.blamejared.com/' }
+        maven { url = 'https://maven.shedaniel.me/' }
+        maven { url = 'https://maven.terraformersmc.com/releases/' }
+        maven { url = 'https://maven2.bai.lol' }
+        exclusiveContent {
+            forRepository { maven { url = 'https://api.modrinth.com/maven' } }
+            filter { includeGroup 'maven.modrinth' }
+        }
+    }
+
+    loom {
+        silentMojangMappingsLicense()
+    }
+
+    dependencies {
+        minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
+        mappings loom.officialMojangMappings()
+    }
+
+    java {
+        withSourcesJar()
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.release = 21
+        it.options.encoding = 'UTF-8'
+    }
+
+    // License texts inside every jar (binary, sources and javadoc), as the LGPL requires.
+    tasks.withType(Jar).configureEach {
+        from(rootProject.files('COPYING', 'COPYING.LESSER')) {
+            into 'META-INF'
+            rename { "${it}_${rootProject.archives_name}" }
+        }
+    }
+
+    // Javadoc jar: the public API lives in :common, so every artifact ships the common API reference.
+    tasks.register('javadocJar', Jar) {
+        group = 'documentation'
+        archiveClassifier = 'javadoc'
+        def commonJavadoc = project(':common').tasks.named('javadoc')
+        dependsOn commonJavadoc
+        from commonJavadoc.map { it.destinationDir }
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = base.archivesName.get()
+                from components.java
+                artifact tasks.named('javadocJar')
+                pom {
+                    name = "SteelCodeCore (${project.name})"
+                    description = rootProject.mod_description
+                    url = rootProject.project_url
+                    licenses {
+                        license {
+                            name = 'GNU Lesser General Public License v3.0 or later'
+                            url = 'https://www.gnu.org/licenses/lgpl-3.0.html'
+                            distribution = 'repo'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'rudahee'
+                            name = 'RuDaHee'
+                            organization = 'SteelCode Team'
+                        }
+                    }
+                    scm {
+                        url = rootProject.project_url
+                        connection = "scm:git:${rootProject.project_url}.git"
+                    }
+                    issueManagement {
+                        system = 'GitHub'
+                        url = "${rootProject.project_url}/issues"
+                    }
+                }
+            }
+        }
+        repositories {
+            // ./gradlew publish -> Codeberg package registry. Needs CODEBERG_TOKEN (scope: write:package).
+            // Without the token this repository is skipped, so local builds never try to upload.
+            def codebergToken = System.getenv('CODEBERG_TOKEN')
+            if (codebergToken) {
+                maven {
+                    name = 'Codeberg'
+                    url = "https://codeberg.org/api/packages/${rootProject.codeberg_owner}/maven"
+                    credentials(HttpHeaderCredentials) {
+                        name = 'Authorization'
+                        value = "token ${codebergToken}"
+                    }
+                    authentication {
+                        header(HttpHeaderAuthentication)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Documentation site for GitHub Pages: Javadoc into docs/javadoc + guide pages from docs-src/pages.
+tasks.register('buildDocs', Exec) {
+    group = 'documentation'
+    description = 'Builds the documentation site into docs/ (requires python3 with markdown and pygments).'
+    dependsOn ':common:copyJavadocToDocs'
+    workingDir rootDir
+    commandLine 'python3', 'docs-src/build.py'
+}

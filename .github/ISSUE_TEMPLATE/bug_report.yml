@@ -1,0 +1,44 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: Code
+      description: The smallest builder call(s) that reproduce the problem.
+      render: java
+  - type: input
+    id: minecraft
+    attributes:
+      label: Minecraft version
+      placeholder: "1.21.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Loader
+      options: [Fabric, NeoForge, Both]
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: SteelCodeCore / Architectury / loader versions
+      placeholder: "SteelCodeCore 0.1.0, Architectury 13.0.8, NeoForge 21.1.209"
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log or crash report
+      description: Paste the relevant part of latest.log, or a link to a paste service.
+      render: shell

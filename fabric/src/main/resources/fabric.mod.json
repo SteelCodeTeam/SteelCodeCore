@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "steelcodecore",
+  "version": "${version}",
+  "name": "SteelCodeCore",
+  "description": "${description}",
+  "authors": ["RuDaHee", "SteelCode Team"],
+  "license": "LGPL-3.0-or-later",
+  "contact": {
+    "homepage": "${docs_url}",
+    "sources": "${project_url}",
+    "issues": "${project_url}/issues"
+  },
+  "environment": "*",
+  "entrypoints": {
+    "main": ["dev.steelcode.core.fabric.SteelCodeCoreFabric"],
+    "client": ["dev.steelcode.core.fabric.SteelCodeCoreFabricClient"],
+    "jei_mod_plugin": ["dev.steelcode.core.impl.compat.JeiCompat"],
+    "rei_client": ["dev.steelcode.core.impl.compat.ReiCompat"],
+    "emi": ["dev.steelcode.core.impl.compat.EmiCompat"],
+    "jade": ["dev.steelcode.core.impl.compat.JadeCompat"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "architectury": ">=13.0.0",
+    "fabric-api": "*"
+  }
+}

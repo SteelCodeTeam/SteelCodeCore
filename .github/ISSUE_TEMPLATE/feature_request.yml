@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest a builder, option or integration
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do?
+      description: Describe the content or feature you are trying to create.
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: How would you like to write it?
+      description: An example of the API you imagine.
+      render: java

@@ -1,0 +1,29 @@
+# Gradle / Loom
+.gradle/
+build/
+**/build/
+.architectury-transformer/
+**/.architectury-transformer/
+run/
+**/run/
+
+# Generated documentation (built and deployed by .github/workflows/docs.yml)
+/docs/
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+# OS / Python
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc

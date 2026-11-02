@@ -1,0 +1,8 @@
+# Weekly pull requests for GitHub Actions updates. Minecraft-related Gradle versions (Loom, Architectury,
+# NeoForge, Fabric) are updated by hand, since they must match the Minecraft version.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

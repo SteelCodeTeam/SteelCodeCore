@@ -1,0 +1,37 @@
+architectury {
+    common rootProject.enabled_platforms.split(',')
+}
+
+dependencies {
+    // Solo para las anotaciones/clases de Fabric Loader que Architectury usa en common.
+    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+
+    // Integraciones opcionales: solo para compilar los plugins; no son dependencias del mod.
+    compileOnly "mezz.jei:jei-1.21.1-common-api:$rootProject.jei_version"
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:$rootProject.rei_version"
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin:$rootProject.rei_version"
+    compileOnly "dev.emi:emi-xplat-mojmap:$rootProject.emi_version:api"
+    modCompileOnly "maven.modrinth:jade:$rootProject.jade_version+fabric"
+    compileOnly "mcp.mobius.waila:wthit-api:mojmap-$rootProject.wthit_version"
+}
+
+// Public API reference (published under docs/javadoc by the copyJavadocToDocs task).
+javadoc {
+    exclude 'dev/steelcode/core/impl/**'
+    classpath += sourceSets.main.output
+    title = "SteelCodeCore ${project.version} API"
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.addStringOption('Xdoclint:all,-missing', '-quiet')
+    options.addBooleanOption('html5', true)
+    options.links('https://docs.oracle.com/en/java/javase/21/docs/api/')
+}
+
+tasks.register('copyJavadocToDocs', Sync) {
+    group = 'documentation'
+    description = 'Generates the API reference and copies it to docs/javadoc for GitHub Pages.'
+    dependsOn javadoc
+    from javadoc.destinationDir
+    into rootProject.file('docs/javadoc')
+}

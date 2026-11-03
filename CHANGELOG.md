@@ -9,6 +9,11 @@ so add the section before tagging.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-02
+
+### Fixed
+- Release pipeline: publication to the Codeberg Maven registry.
+
 ## [0.1.0] - 2026-11-02
 
 First public release, for Minecraft 1.21.1 (Fabric and NeoForge).

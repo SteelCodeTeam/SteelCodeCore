@@ -34,16 +34,6 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Check the changelog has an entry for this version
-        run: |
-          grep -q "^## \[${{ steps.version.outputs.version }}\]" CHANGELOG.md \
-            || { echo "::error::CHANGELOG.md has no '## [${{ steps.version.outputs.version }}]' section"; exit 1; }
-          awk -v v="${{ steps.version.outputs.version }}" '
-            $0 ~ "^## \\[" v "\\]" { found = 1; next }
-            found && /^## \[/ { exit }
-            found { print }
-          ' CHANGELOG.md > release-notes.md
-
       - name: Build and publish to Codeberg
         env:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
@@ -55,7 +45,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: SteelCodeCore ${{ steps.version.outputs.version }}
-          body_path: release-notes.md
+          generate_release_notes: true
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
           files: |
             fabric/build/libs/steelcodecore-fabric-${{ steps.version.outputs.version }}.jar
